@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import Dict
 
-STORAGE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../storage"))
+STORAGE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../storage"))
 
 def get_scene_dir(scene_id: str) -> str:
     return os.path.join(STORAGE_ROOT, "scenes", scene_id)
