@@ -61,15 +61,39 @@ def normalize_confidence(conf):
     return np.clip(np.nan_to_num(out, nan=0.0, posinf=1.0, neginf=0.0), 0.0, 1.0).astype(np.float32)
 
 
-def fuse_depths(reference_depth, aligned_depth, reference_confidence):
+def fuse_depths(reference_depth, aligned_depth, reference_confidence,
+                 trust_threshold=0.5, max_aligned_weight=0.4):
     """Confidence-guided fusion. `reference_confidence` is confidence IN the
-    reference (geometric/VGGT) depth, normalized to [0, 1]: high confidence keeps
-    the reference depth, low confidence lets the aligned diffusion depth through.
+    reference (geometric/VGGT) depth, normalized to [0, 1] via
+    `normalize_confidence` (i.e. relative to this image's own 5th/95th
+    percentile confidence, not an absolute scale).
+
+    Revision note (Phase 4 ablation, `experiments/RESULTS.md`): the original
+    version used a full-range linear blend, `weight = 1 - reference_confidence`.
+    Because `normalize_confidence` always stretches each image's confidence to
+    fill [0, 1], that made the *median* pixel in every scene land near
+    weight=0.5 regardless of whether VGGT's absolute confidence was uniformly
+    excellent -- e.g. on the real `room` scene (VGGT-only cross-view error
+    4.8x lower than Marigold-only) the median pixel still got ~31% Marigold
+    weight, and 24% of pixels got a majority-Marigold blend. The fusion was
+    not actually confidence-*selective*; it behaved close to naive averaging
+    for a typical pixel, which is why its ablation scores tracked naive
+    averaging rather than staying near VGGT-only's.
+
+    Fixed by gating on relative confidence instead of blending across the
+    full range: pixels at or above `trust_threshold` keep VGGT's depth
+    untouched (weight 0); only pixels below the threshold ramp in aligned
+    depth, capped at `max_aligned_weight` so no pixel is ever fully replaced
+    by Marigold -- every scene tested showed Marigold-only is the worst
+    standalone method, so full replacement is never justified by the
+    confidence signal alone.
     """
     reference_depth = np.asarray(reference_depth, dtype=np.float32)
     aligned_depth = np.asarray(aligned_depth, dtype=np.float32)
-    rc = np.asarray(reference_confidence, dtype=np.float32)
-    fusion_weight = 1.0 - rc
+    rc = np.clip(np.asarray(reference_confidence, dtype=np.float32), 0.0, 1.0)
+
+    below_threshold = np.clip((trust_threshold - rc) / trust_threshold, 0.0, 1.0)
+    fusion_weight = below_threshold * max_aligned_weight
     return ((1.0 - fusion_weight) * reference_depth + fusion_weight * aligned_depth).astype(np.float32)
 
 

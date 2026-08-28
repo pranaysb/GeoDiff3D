@@ -77,12 +77,45 @@ def test_fuse_depths_high_reference_confidence_keeps_reference():
     np.testing.assert_allclose(fused, reference)
 
 
-def test_fuse_depths_low_reference_confidence_uses_aligned():
+def test_fuse_depths_low_reference_confidence_is_capped_not_fully_replaced():
+    """Even at zero confidence, the reference depth must never be fully
+    replaced by the aligned depth -- Marigold-only was the worst standalone
+    method in every real scene tested (see experiments/RESULTS.md), so full
+    replacement is never justified by the confidence signal alone.
+    """
     reference = np.full((4, 4), 10.0, dtype=np.float32)
     aligned = np.full((4, 4), 0.0, dtype=np.float32)
-    low_conf = np.zeros((4, 4), dtype=np.float32)
-    fused = fuse_depths(reference, aligned, low_conf)
-    np.testing.assert_allclose(fused, aligned)
+    zero_conf = np.zeros((4, 4), dtype=np.float32)
+    fused = fuse_depths(reference, aligned, zero_conf, max_aligned_weight=0.4)
+    expected = 0.6 * reference + 0.4 * aligned
+    np.testing.assert_allclose(fused, expected)
+
+
+def test_fuse_depths_at_or_above_threshold_keeps_reference_untouched():
+    """Confidence at/above trust_threshold must fully trust VGGT (weight 0)
+    -- this is the fix for the diagnosed bug where the old linear blend gave
+    even median-confidence pixels a near-50/50 blend in every scene.
+    """
+    reference = np.full((4, 4), 10.0, dtype=np.float32)
+    aligned = np.full((4, 4), 0.0, dtype=np.float32)
+    at_threshold = np.full((4, 4), 0.5, dtype=np.float32)
+    above_threshold = np.full((4, 4), 0.9, dtype=np.float32)
+    np.testing.assert_allclose(
+        fuse_depths(reference, aligned, at_threshold, trust_threshold=0.5), reference
+    )
+    np.testing.assert_allclose(
+        fuse_depths(reference, aligned, above_threshold, trust_threshold=0.5), reference
+    )
+
+
+def test_fuse_depths_ramps_linearly_below_threshold():
+    reference = np.full((1, 1), 10.0, dtype=np.float32)
+    aligned = np.full((1, 1), 0.0, dtype=np.float32)
+    # Halfway between 0 and trust_threshold=0.5 -> half of max_aligned_weight.
+    half_below = np.full((1, 1), 0.25, dtype=np.float32)
+    fused = fuse_depths(reference, aligned, half_below, trust_threshold=0.5, max_aligned_weight=0.4)
+    expected_weight = 0.5 * 0.4
+    np.testing.assert_allclose(fused, (1 - expected_weight) * reference + expected_weight * aligned)
 
 
 def test_unprojection_camera_transform_identity_round_trip():
