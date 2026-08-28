@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Backend virtualenv
+backend/venv/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/next-env.d.ts
+
+# Runtime data (created by the running app; not source)
+storage/scenes/*
+!storage/scenes/.gitkeep
+
+# Vendored external repo (cloned separately per README / VGGT_REPO_DIR;
+# not tracked here to keep the repo to our own code)
+notebooks/vggt/
+
+# Generated experiment artifacts: point clouds and raw depth arrays are
+# large, fully reproducible via `python experiments/run_ablation.py`, and
+# not source. Summary tables (comparison_table.*, comparison_summaries.json),
+# per-scene comparison.json, and qualitative PNGs ARE tracked.
+*.ply
+*.npy
+
+# OS
+.DS_Store
