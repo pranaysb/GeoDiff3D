@@ -1,5 +1,10 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
+// ngrok's free tier injects an HTML interstitial for browser-like requests
+// unless this header is present -- harmless no-op against a plain localhost
+// backend, needed when API_URL points at an ngrok tunnel (see README).
+const API_HEADERS = { "ngrok-skip-browser-warning": "true" };
+
 export interface Job {
   job_id: string;
   scene_id: string;
@@ -68,6 +73,7 @@ export async function createReconstruction(files: File[]): Promise<{ job_id: str
   const res = await fetch(`${API_URL}/reconstruct`, {
     method: "POST",
     body: formData,
+    headers: API_HEADERS,
   });
   
   if (!res.ok) {
@@ -79,7 +85,7 @@ export async function createReconstruction(files: File[]): Promise<{ job_id: str
 }
 
 export async function getJob(jobId: string): Promise<Job> {
-  const res = await fetch(`${API_URL}/jobs/${jobId}`);
+  const res = await fetch(`${API_URL}/jobs/${jobId}`, { headers: API_HEADERS });
   if (!res.ok) {
     throw new Error("Failed to get job");
   }
@@ -87,7 +93,7 @@ export async function getJob(jobId: string): Promise<Job> {
 }
 
 export async function getScene(sceneId: string): Promise<Scene> {
-  const res = await fetch(`${API_URL}/scene/${sceneId}`);
+  const res = await fetch(`${API_URL}/scene/${sceneId}`, { headers: API_HEADERS });
   if (!res.ok) {
     throw new Error("Failed to get scene");
   }
@@ -95,7 +101,7 @@ export async function getScene(sceneId: string): Promise<Scene> {
 }
 
 export async function getArtifacts(sceneId: string): Promise<Artifacts> {
-  const res = await fetch(`${API_URL}/scene/${sceneId}/artifacts`);
+  const res = await fetch(`${API_URL}/scene/${sceneId}/artifacts`, { headers: API_HEADERS });
   if (!res.ok) {
     throw new Error("Failed to get artifacts");
   }
@@ -113,7 +119,7 @@ export function getArtifactDownloadUrl(sceneId: string, filename: string): strin
  * Callers must treat null as "no data available", never substitute a guess.
  */
 export async function getSceneMetrics(sceneId: string): Promise<SceneMetrics | null> {
-  const res = await fetch(getArtifactDownloadUrl(sceneId, "metrics.json"));
+  const res = await fetch(getArtifactDownloadUrl(sceneId, "metrics.json"), { headers: API_HEADERS });
   if (!res.ok) {
     return null;
   }

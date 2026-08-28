@@ -50,7 +50,11 @@ function FrameOnLoad({ geometry }: { geometry: THREE.BufferGeometry }) {
 }
 
 function PLYModel({ url, pointSize }: PointCloudProps) {
-  const geometry = useLoader(PLYLoader, url);
+  // Same ngrok free-tier interstitial bypass as lib/api.ts -- PLYLoader does
+  // its own fetch outside that module, so it needs the header set directly.
+  const geometry = useLoader(PLYLoader, url, (loader) => {
+    loader.setRequestHeader({ "ngrok-skip-browser-warning": "true" });
+  });
 
   const material = useMemo(() => {
     return new THREE.PointsMaterial({
