@@ -1,0 +1,187 @@
+{
+  "scene": "kitchen",
+  "num_views": 6,
+  "vggt": {
+    "model": "facebook/VGGT-1B",
+    "device": "cuda",
+    "dtype": "torch.float16",
+    "num_views": 6,
+    "image_shape": [
+      350,
+      518
+    ],
+    "runtime_sec": 3.449,
+    "cuda_available": true,
+    "gpu_name": "Tesla T4",
+    "gpu_memory_allocated_gb": 4.707
+  },
+  "marigold": {
+    "model": "prs-eth/marigold-depth-v1-1",
+    "device": "cuda",
+    "num_views": 6,
+    "num_inference_steps": 4,
+    "runtime_sec": 7.335,
+    "per_view_runtime_sec": [
+      1.394,
+      0.855,
+      0.856,
+      0.855,
+      0.855,
+      0.863
+    ],
+    "gpu_memory_allocated_gb": 2.429
+  },
+  "shared_setup_sec": 159.68,
+  "alignment": [
+    {
+      "view": 0,
+      "scale": 1.198708469974865,
+      "shift": 0.8825457385808307,
+      "valid_pixel_count": 173785,
+      "residual": 0.33546506559349926
+    },
+    {
+      "view": 1,
+      "scale": 0.7630204736197728,
+      "shift": 0.8473857133868311,
+      "valid_pixel_count": 168765,
+      "residual": 0.28968142758106824
+    },
+    {
+      "view": 2,
+      "scale": 1.0343684080628321,
+      "shift": 1.0646477492146698,
+      "valid_pixel_count": 167567,
+      "residual": 0.39697257671375946
+    },
+    {
+      "view": 3,
+      "scale": 0.8931259058137154,
+      "shift": 0.8759242028803745,
+      "valid_pixel_count": 173624,
+      "residual": 0.10598486741230934
+    },
+    {
+      "view": 4,
+      "scale": 1.9171737614927018,
+      "shift": 0.938418341358647,
+      "valid_pixel_count": 171786,
+      "residual": 0.3941613727387925
+    },
+    {
+      "view": 5,
+      "scale": 0.8475111899135425,
+      "shift": 0.9889614366194988,
+      "valid_pixel_count": 170581,
+      "residual": 0.23364539226170727
+    }
+  ],
+  "methods": {
+    "vggt_only": {
+      "runtime_sec": 3.7929,
+      "point_cloud": {
+        "num_points": 1082358,
+        "bbox_min": [
+          -2.7660880088806152,
+          -0.7850754857063293,
+          -0.6021341681480408
+        ],
+        "bbox_max": [
+          0.8243847489356995,
+          0.7009153962135315,
+          2.566499710083008
+        ],
+        "bbox_size": [
+          3.59047269821167,
+          1.4859908819198608,
+          3.1686339378356934
+        ],
+        "depth_range": [
+          -0.6021341681480408,
+          2.566499710083008
+        ]
+      },
+      "cross_view_consistency_mean_abs_rel_error": 0.07385588809847832
+    },
+    "marigold_only": {
+      "runtime_sec": 3.0357,
+      "point_cloud": {
+        "num_points": 1082404,
+        "bbox_min": [
+          -2.2040293216705322,
+          -0.6745080947875977,
+          -0.5304317474365234
+        ],
+        "bbox_max": [
+          0.9958525896072388,
+          0.7972855567932129,
+          2.378358840942383
+        ],
+        "bbox_size": [
+          3.1998820304870605,
+          1.4717936515808105,
+          2.9087905883789062
+        ],
+        "depth_range": [
+          -0.5304317474365234,
+          2.378358840942383
+        ]
+      },
+      "cross_view_consistency_mean_abs_rel_error": 0.13187832832336427,
+      "note": "VGGT's camera parameters are reused since Marigold alone produces no multi-view camera geometry to reconstruct in a shared frame."
+    },
+    "naive_average": {
+      "runtime_sec": 3.2135,
+      "point_cloud": {
+        "num_points": 1082358,
+        "bbox_min": [
+          -2.3991262912750244,
+          -0.6547068357467651,
+          -0.5236051082611084
+        ],
+        "bbox_max": [
+          0.9037696123123169,
+          0.6611236929893494,
+          2.408823251724243
+        ],
+        "bbox_size": [
+          3.302896022796631,
+          1.3158304691314697,
+          2.9324283599853516
+        ],
+        "depth_range": [
+          -0.5236051082611084,
+          2.408823251724243
+        ]
+      },
+      "cross_view_consistency_mean_abs_rel_error": 0.09244574159383774
+    },
+    "geodiff3d_fusion": {
+      "runtime_sec": 4.6929,
+      "point_cloud": {
+        "num_points": 1082404,
+        "bbox_min": [
+          -2.2040293216705322,
+          -0.6745080947875977,
+          -0.5304317474365234
+        ],
+        "bbox_max": [
+          0.9958525896072388,
+          0.7972855567932129,
+          2.378358840942383
+        ],
+        "bbox_size": [
+          3.1998820304870605,
+          1.4717936515808105,
+          2.9087905883789062
+        ],
+        "depth_range": [
+          -0.5304317474365234,
+          2.378358840942383
+        ]
+      },
+      "cross_view_consistency_mean_abs_rel_error": 0.08632028475403786
+    }
+  },
+  "ground_truth": "none available for this scene -- self-consistency diagnostics only"
+}
