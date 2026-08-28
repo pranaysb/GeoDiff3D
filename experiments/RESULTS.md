@@ -85,6 +85,42 @@ the most fine leaf/petal texture, and that appears to be where leaning on it
 via confidence weighting actively hurts multi-view agreement rather than
 helping it.
 
+## Fusion fix (not yet re-verified on GPU)
+
+**Diagnosis:** `normalize_confidence` rescales each image's confidence to its
+own 5th/95th percentile, and the original `fuse_depths` blended linearly
+(`weight = 1 - confidence`). Because that rescaling always fills [0, 1]
+regardless of whether VGGT's absolute confidence is uniformly excellent, the
+*median* pixel in every one of the four scenes above landed near a 50/50
+blend — e.g. in `room` (VGGT-only beats Marigold-only by 4.8x on this
+metric) the median pixel still got ~31% Marigold weight, and 24% of pixels
+got a majority-Marigold blend. The fusion was not actually
+confidence-*selective*; it behaved close to naive averaging for a typical
+pixel — which is exactly why its scores tracked `naive_average` rather than
+staying near `vggt_only` throughout this table. Recovered per-pixel weights
+from the saved depth arrays above confirm this precisely (see commit fixing
+`core/math.py::fuse_depths`).
+
+**Fix implemented in `core/math.py::fuse_depths`:** gate on relative
+confidence instead of blending across the full range — pixels at or above
+`trust_threshold` (default 0.5) keep VGGT's depth untouched; only pixels
+below it ramp in aligned depth, capped at `max_aligned_weight` (default 0.4)
+so no pixel is ever fully replaced by Marigold, since Marigold-only was the
+worst standalone method in every scene tested. Unit tests added in
+`tests/test_core_math.py`.
+
+**Offline sanity check** (not the real metric — cross-view consistency needs
+camera matrices this repo doesn't persist from the ablation run, so it can't
+be recomputed without a GPU): replaying the real recovered per-pixel
+confidence from each of the four scenes above through the new formula pulls
+the fused depth 66–81% closer to `vggt_only`'s depth (mean absolute relative
+deviation) than the old formula did, while still letting some Marigold
+signal through in the genuinely lowest-relative-confidence regions. This is
+a directional check only. **The actual cross-view-consistency numbers for
+the new fusion have not been re-run on GPU yet** — that requires a fresh
+`python experiments/run_ablation.py` pass and is the next step before any
+claim of improvement.
+
 ### Qualitative (depth_comparison_4methods.png)
 
 - **`room`**: all four methods' depth maps are visually near-identical across
