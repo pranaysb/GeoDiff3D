@@ -1,0 +1,19 @@
+# Do not install torch/torchvision on Colab -- it already ships a working
+# CUDA-matched build, and reinstalling is a common source of runtime breakage.
+# These versions are the ones actually verified end-to-end on a T4 GPU.
+diffusers>=0.35.0
+transformers>=4.45.0
+accelerate
+safetensors
+huggingface_hub
+numpy
+# Pillow >=11.3 shipped a broken PIL.ImageText module on PyPI that breaks
+# VGGT's import chain (ImportError: cannot import name '_Ink'); pin below it.
+pillow<11.3
+matplotlib
+tqdm
+scipy
+plyfile
+
+# VGGT itself is not pip-installable; clone https://github.com/facebookresearch/vggt
+# and add it to PYTHONPATH (see inference/vggt_pipeline.py).
