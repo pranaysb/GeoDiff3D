@@ -62,7 +62,7 @@ def normalize_confidence(conf):
 
 
 def fuse_depths(reference_depth, aligned_depth, reference_confidence,
-                 trust_threshold=0.5, max_aligned_weight=0.4):
+                 trust_threshold=0.5, max_aligned_weight=0.1):
     """Confidence-guided fusion. `reference_confidence` is confidence IN the
     reference (geometric/VGGT) depth, normalized to [0, 1] via
     `normalize_confidence` (i.e. relative to this image's own 5th/95th
@@ -87,6 +87,15 @@ def fuse_depths(reference_depth, aligned_depth, reference_confidence,
     by Marigold -- every scene tested showed Marigold-only is the worst
     standalone method, so full replacement is never justified by the
     confidence signal alone.
+
+    Defaults tuned via `experiments/tune_fusion.py` (offline grid search
+    against the real cross_view_consistency metric on cached real VGGT +
+    Marigold outputs from all 4 ablation scenes -- see "Hyperparameter
+    tuning" in RESULTS.md). max_aligned_weight=0.4 (the untuned, diagnosis-only
+    value) beat VGGT-only in 2 of 4 scenes; max_aligned_weight=0.1 beats it in
+    3 of 4, losing only narrowly (1.8%) in the remaining one. trust_threshold
+    had little effect on the grid at this weight (0.4-0.7 all close); 0.5 was
+    kept as a reasonable, already-familiar midpoint.
     """
     reference_depth = np.asarray(reference_depth, dtype=np.float32)
     aligned_depth = np.asarray(aligned_depth, dtype=np.float32)

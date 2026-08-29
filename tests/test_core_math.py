@@ -91,6 +91,20 @@ def test_fuse_depths_low_reference_confidence_is_capped_not_fully_replaced():
     np.testing.assert_allclose(fused, expected)
 
 
+def test_fuse_depths_default_parameters_match_tuned_values():
+    """Regression test pinning the shipped defaults to the values chosen by
+    experiments/tune_fusion.py's offline grid search (see "Hyperparameter
+    tuning" in RESULTS.md) -- catches an accidental change to the defaults
+    without a corresponding re-tune and doc update.
+    """
+    reference = np.full((4, 4), 10.0, dtype=np.float32)
+    aligned = np.full((4, 4), 0.0, dtype=np.float32)
+    zero_conf = np.zeros((4, 4), dtype=np.float32)
+    fused = fuse_depths(reference, aligned, zero_conf)
+    expected = 0.9 * reference + 0.1 * aligned
+    np.testing.assert_allclose(fused, expected)
+
+
 def test_fuse_depths_at_or_above_threshold_keeps_reference_untouched():
     """Confidence at/above trust_threshold must fully trust VGGT (weight 0)
     -- this is the fix for the diagnosed bug where the old linear blend gave
