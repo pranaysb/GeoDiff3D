@@ -7,10 +7,6 @@ room), 6 views each. VGGT and Marigold were each run once per scene; all four
 methods below are derived from that single shared pair of runs so the
 comparison uses identical inputs, preprocessing, and camera geometry.
 
-This supersedes an earlier 2-scene run (`kitchen`, `llff_fern` only). One
-headline claim from that run **does not hold up** with two more scenes added
-— see Findings below.
-
 **No ground truth exists for any of these scenes.** The only metric below,
 cross-view consistency, is a self-consistency diagnostic (reprojecting each
 view's depth into its neighbor and comparing against that neighbor's own
@@ -19,145 +15,126 @@ method can score well here while being uniformly wrong; confirming actual
 accuracy would require a dataset with captured ground-truth depth or a mesh,
 which this repo does not have.
 
-## Comparison table
+This is the third revision of this document. See **Revision history** at the
+bottom for what changed between runs and why — in short: a 2-scene run
+suggested fusion consistently beat naive averaging, a 4-scene run showed that
+didn't hold and also showed fusion never beat VGGT-only, and a bug in the
+fusion weighting was diagnosed and fixed as a result. The table and findings
+below are from the fixed fusion, re-run on the same four scenes.
+
+## Comparison table (fixed fusion)
 
 | Scene | Method | Points | Runtime | Cross-view consistency (mean abs rel error, lower = more self-consistent) |
 |---|---|---|---|---|
-| kitchen | vggt_only | 1,082,358 | 3.79s | **0.0739 (best)** |
-| kitchen | geodiff3d_fusion | 1,082,404 | 4.69s | 0.0863 |
-| kitchen | naive_average | 1,082,358 | 3.21s | 0.0924 |
-| kitchen | marigold_only | 1,082,404 | 3.04s | 0.1319 (worst) |
-| llff_fern | naive_average | 1,212,241 | 3.47s | **0.0365 (best)** |
-| llff_fern | vggt_only | 1,212,240 | 4.77s | 0.0381 |
-| llff_fern | geodiff3d_fusion | 1,212,240 | 4.60s | 0.0385 |
-| llff_fern | marigold_only | 1,212,242 | 3.43s | 0.0395 (worst) |
-| llff_flower | vggt_only | 1,212,240 | 4.60s | **0.0874 (best)** |
-| llff_flower | naive_average | 1,212,240 | 3.43s | 0.1046 |
-| llff_flower | geodiff3d_fusion | 1,212,240 | 4.66s | 0.1345 |
-| llff_flower | marigold_only | 1,212,240 | 3.47s | 0.1435 (worst) |
-| room | vggt_only | 1,212,240 | 4.59s | **0.0285 (best)** |
-| room | geodiff3d_fusion | 1,212,240 | 4.38s | 0.0678 |
-| room | naive_average | 1,212,240 | 3.40s | 0.0801 |
-| room | marigold_only | 1,212,257 | 3.39s | 0.1379 (worst) |
+| kitchen | geodiff3d_fusion | 1,082,358 | 2.89s | **0.0683 (best)** |
+| kitchen | vggt_only | 1,082,358 | 2.96s | 0.0739 |
+| kitchen | naive_average | 1,082,358 | 4.46s | 0.0945 |
+| kitchen | marigold_only | 1,083,286 | 2.98s | 0.1372 (worst) |
+| llff_fern | naive_average | 1,212,240 | 4.49s | **0.0355 (best)** |
+| llff_fern | geodiff3d_fusion | 1,212,240 | 3.33s | 0.0365 |
+| llff_fern | marigold_only | 1,212,240 | 3.55s | 0.0377 |
+| llff_fern | vggt_only | 1,212,240 | 3.34s | 0.0381 (worst) |
+| llff_flower | vggt_only | 1,212,240 | 3.26s | **0.0874 (best)** |
+| llff_flower | geodiff3d_fusion | 1,212,240 | 3.31s | 0.0943 |
+| llff_flower | naive_average | 1,212,240 | 4.41s | 0.1015 |
+| llff_flower | marigold_only | 1,212,240 | 3.39s | 0.1377 (worst) |
+| room | vggt_only | 1,212,240 | 3.23s | **0.0285 (best)** |
+| room | geodiff3d_fusion | 1,212,240 | 3.38s | 0.0335 |
+| room | naive_average | 1,212,240 | 3.34s | 0.0688 |
+| room | marigold_only | 1,213,258 | 4.56s | 0.1175 (worst) |
 
-Full per-scene metadata (device, dtype, per-view runtime, alignment
-scale/shift/residual) is in each scene's `comparison.json`; model/inference
-runtimes above are the reconstruction-step timer only (unprojection + save),
-not VGGT/Marigold inference, which is recorded separately in
-`shared_setup_sec` (52–55s per scene, except `kitchen` at 160s as the first
-scene run, which absorbs one-time HuggingFace model download/cache-warming —
-not a per-scene cost).
+Real GPU run confirmed via each scene's `comparison.json` (Tesla T4,
+`facebook/VGGT-1B`, `prs-eth/marigold-depth-v1-1`, `torch.float16`).
 
 ## Findings
 
-**VGGT-only wins on cross-view consistency in 3 of 4 scenes outright**
-(`kitchen`, `llff_flower`, `room`), and is a near-tie for best in the 4th
-(`llff_fern`: 0.0381 vs. the winning naive-average's 0.0365, a 4% gap). No
-fusion or averaging method beat pure VGGT geometry in any scene.
-**GeoDiff3D confidence-guided fusion does not improve on VGGT-only
-reconstruction on this metric, on any of the four scenes tested.**
+**GeoDiff3D fusion now beats VGGT-only in 2 of 4 scenes** (`kitchen`:
+0.0683 vs. 0.0739; `llff_fern`: 0.0365 vs. 0.0381) — up from 0 of 4 before
+the fix. In `kitchen`, fusion is the single best method of all four. In the
+2 scenes where it still trails VGGT-only (`llff_flower`, `room`), the gap is
+much smaller than before the fix: 7.9% worse (was 54%) and 17.5% worse (was
+138%), respectively. **This is a genuine, partial improvement — not a full
+win.** Fusion still doesn't beat VGGT-only in every scene, and there's no
+basis to claim it does.
 
-**The 2-scene finding that "GeoDiff3D fusion consistently beats naive
-averaging" does not hold at 4 scenes — this claim is retracted.** Fusion
-beats naive averaging in `kitchen` (0.0863 vs. 0.0924) and `room` (0.0678 vs.
-0.0801), but *loses* to it in `llff_fern` (0.0385 vs. 0.0365) and
-`llff_flower` (0.1345 vs. 0.1046, the largest gap in either direction across
-the whole table). That's a 2–2 split, not a consistent advantage. Confidence
-weighting is not a free win over blind averaging; it is scene-dependent, and
-on this evidence there's no basis to claim it generally helps.
+**Fusion beats naive averaging in 3 of 4 scenes** (`kitchen`, `llff_flower`,
+`room`), losing only in `llff_fern` and by a small margin (0.0365 vs.
+0.0355, 2.8%). This is a cleaner result than the pre-fix 2-of-4 split.
 
-**GeoDiff3D fusion does consistently beat Marigold-only, in all 4 scenes**
-(0.0863 vs. 0.1319; 0.0385 vs. 0.0395; 0.1345 vs. 0.1435; 0.0678 vs. 0.1379).
-This is the one comparison that generalized cleanly across every scene
-tested — folding in VGGT's geometry, even loosely, is reliably better than
-using Marigold's monocular depth alone.
+**Fusion still beats Marigold-only in all 4 scenes**, unchanged from before
+the fix.
 
-**Marigold-only is the worst or tied-worst method in every scene** — expected
-for a purely monocular method with no multi-view constraint; each view is
-independently aligned to VGGT's scale, so nothing forces whatever local
-detail it resolves to agree across views.
+**Comparing directly to the pre-fix fusion numbers, error dropped in every
+single scene**: `kitchen` 0.0863→0.0683 (-20.9%), `llff_fern` 0.0385→0.0365
+(-5.2%), `llff_flower` 0.1345→0.0943 (-29.9%), `room` 0.0678→0.0335 (-50.6%).
+The fix's diagnosis — that the old formula gave even high-confidence pixels
+a near-50/50 blend — is directly supported by how much every scene improved
+once that was corrected, including the two scenes where fusion still doesn't
+win outright.
 
-**The two outdoor/plant scenes (`llff_fern`, `llff_flower`) are where fusion
-does worst relative to naive averaging**, and `llff_flower` specifically is
-where fusion is worst overall relative to VGGT-only (54% higher error: 0.1345
-vs. 0.0874). Qualitatively (below), this is the scene where Marigold resolves
-the most fine leaf/petal texture, and that appears to be where leaning on it
-via confidence weighting actively hurts multi-view agreement rather than
-helping it.
-
-## Fusion fix (not yet re-verified on GPU)
-
-**Diagnosis:** `normalize_confidence` rescales each image's confidence to its
-own 5th/95th percentile, and the original `fuse_depths` blended linearly
-(`weight = 1 - confidence`). Because that rescaling always fills [0, 1]
-regardless of whether VGGT's absolute confidence is uniformly excellent, the
-*median* pixel in every one of the four scenes above landed near a 50/50
-blend — e.g. in `room` (VGGT-only beats Marigold-only by 4.8x on this
-metric) the median pixel still got ~31% Marigold weight, and 24% of pixels
-got a majority-Marigold blend. The fusion was not actually
-confidence-*selective*; it behaved close to naive averaging for a typical
-pixel — which is exactly why its scores tracked `naive_average` rather than
-staying near `vggt_only` throughout this table. Recovered per-pixel weights
-from the saved depth arrays above confirm this precisely (see commit fixing
-`core/math.py::fuse_depths`).
-
-**Fix implemented in `core/math.py::fuse_depths`:** gate on relative
-confidence instead of blending across the full range — pixels at or above
-`trust_threshold` (default 0.5) keep VGGT's depth untouched; only pixels
-below it ramp in aligned depth, capped at `max_aligned_weight` (default 0.4)
-so no pixel is ever fully replaced by Marigold, since Marigold-only was the
-worst standalone method in every scene tested. Unit tests added in
-`tests/test_core_math.py`.
-
-**Offline sanity check** (not the real metric — cross-view consistency needs
-camera matrices this repo doesn't persist from the ablation run, so it can't
-be recomputed without a GPU): replaying the real recovered per-pixel
-confidence from each of the four scenes above through the new formula pulls
-the fused depth 66–81% closer to `vggt_only`'s depth (mean absolute relative
-deviation) than the old formula did, while still letting some Marigold
-signal through in the genuinely lowest-relative-confidence regions. This is
-a directional check only. **The actual cross-view-consistency numbers for
-the new fusion have not been re-run on GPU yet** — that requires a fresh
-`python experiments/run_ablation.py` pass and is the next step before any
-claim of improvement.
+**The two scenes where fusion still loses to VGGT-only are the two where
+VGGT itself is most dominant** (`llff_flower` and `room` are also VGGT's two
+best-scoring scenes, 0.0874 and 0.0285 respectively — the lowest absolute
+errors in the whole table). It's plausible that in scenes where VGGT's raw
+geometry is already excellent nearly everywhere, there is very little
+genuinely low-confidence signal for the fusion to correct, and the small
+capped contribution from Marigold's monocular depth (which is never
+multi-view consistent) is a net negative even at a low weight. This is a
+plausible reading of the pattern, not something these four scenes prove.
 
 ### Qualitative (depth_comparison_4methods.png)
 
-- **`room`**: all four methods' depth maps are visually near-identical across
-  all 6 views — differences are almost imperceptible by eye, yet the
-  quantitative gap between VGGT-only (0.0285) and fusion (0.0678) is the
-  largest relative gap of the whole table (2.4×). This is a useful caution:
-  visual similarity in these figures does not imply comparable cross-view
-  consistency: each subplot is auto-scaled to its own min/max, so this figure
-  cannot show the small, geometrically consequential differences that drive
-  the metric.
+- **`room`**: VGGT-only, naive averaging, and fusion depth maps are visually
+  close across all 6 views, yet fusion's cross-view error is still 17.5%
+  higher than VGGT-only's — a reminder that visual similarity in these plots
+  does not imply comparable cross-view consistency, since each subplot is
+  auto-scaled to its own min/max.
 - **`llff_flower`**: Marigold resolves clearly richer high-frequency texture
-  on the flower petals and leaves than VGGT (visible mottling VGGT smooths
-  over entirely) — genuine diffusion-prior detail. GeoDiff3D fusion visibly
-  picks up more of that Marigold texture than naive averaging does in this
-  scene. That is consistent with the quantitative result: whatever the
-  confidence map is weighting toward here is adding detail at the cost of
-  multi-view agreement, not improving it.
-- Across scenes, **the qualitative pattern is consistent**: wherever Marigold
-  resolves more local texture than VGGT, GeoDiff3D fusion's depth maps
-  resemble Marigold more than naive averaging's do — but that resemblance
-  correlates with *worse*, not better, cross-view consistency in this
-  dataset.
+  on the flower petals and leaves than VGGT. Fusion's depth maps still show
+  some of that texture, but visibly less than before the fix (consistent
+  with the capped, threshold-gated blend now used) — and the quantitative
+  gap to VGGT-only shrank from 54% to 7.9% as a result.
+- **`kitchen`**: this is now the clearest qualitative/quantitative match —
+  fusion is the best-scoring method and its depth maps look closest to
+  VGGT-only's clean, low-texture field, with only subtle correction in a
+  few local regions.
 
 ## Interpretation
 
 Across four real scenes, GeoDiff3D's confidence-guided fusion of a diffusion
-depth prior (Marigold) into VGGT's multi-view geometry **does not improve
-cross-view self-consistency over VGGT's geometry alone**, and only
-inconsistently (2 of 4 scenes) improves over naive unweighted averaging. The
-one robust win is against using the diffusion prior alone. This is a genuine,
-if modest, negative-leaning result for the core research question ("can a
-diffusion depth prior improve geometry-grounded multi-view reconstruction via
-confidence-guided fusion?") on the metric available here — self-consistency,
-not ground-truth accuracy. It is possible the diffusion prior helps on axes
-this metric can't see (e.g. resolving genuinely missing detail in
-low-confidence VGGT regions) or would perform differently against real
-ground truth; this repo does not have the data to test that.
+depth prior (Marigold) into VGGT's multi-view geometry **improves on
+VGGT-only cross-view self-consistency in half the scenes tested, and comes
+much closer in the other half than it did before the fusion fix**. It
+reliably beats naive unweighted averaging and using Marigold alone. This is
+a positive, if partial, result for the core research question ("can a
+diffusion depth prior improve geometry-grounded multi-view reconstruction
+via confidence-guided fusion?") on the metric available here —
+self-consistency, not ground-truth accuracy. It does not support a claim
+that the fusion always helps; it supports a narrower claim that a properly
+gated confidence signal can help, and that the specific gating/cap
+parameters used here (`trust_threshold=0.5`, `max_aligned_weight=0.4`) were
+not tuned against this ablation — they were chosen from the diagnosis alone,
+before this run. Confirming actual accuracy, or tuning those parameters
+further, would need either a ground-truth dataset or more scenes than the
+four available here.
+
+## Revision history
+
+1. **2-scene run** (`kitchen`, `llff_fern`): suggested GeoDiff3D fusion
+   consistently beat naive averaging, while still losing to VGGT-only.
+2. **4-scene run** (added `llff_flower`, `room`): showed the naive-averaging
+   claim didn't generalize (2-of-4 split) and that fusion never beat
+   VGGT-only in any of the four scenes. Prompted a diagnosis of the fusion
+   weighting: `normalize_confidence`'s per-image percentile stretch combined
+   with a linear `weight = 1 - confidence` blend gave even median-confidence
+   pixels a near-50/50 Marigold blend in every scene, so the fusion behaved
+   close to naive averaging rather than being genuinely confidence-selective.
+3. **Fix + re-run on the same 4 scenes** (this revision): replaced the
+   linear blend with a threshold-gated, capped one in
+   `core/math.py::fuse_depths` (pixels at/above `trust_threshold` keep VGGT's
+   depth untouched; only pixels below it ramp in aligned depth, capped at
+   `max_aligned_weight`). Cross-view error dropped in all 4 scenes versus
+   the pre-fix fusion, and fusion now beats VGGT-only outright in 2 of 4.
 
 ## Reproducing
 

@@ -33,16 +33,20 @@ implemented:
 - **Phase 4 ablation** (`experiments/run_ablation.py`, full results in
   `experiments/RESULTS.md`): VGGT-only, Marigold-only, naive 50/50 averaging,
   and GeoDiff3D confidence-guided fusion run on four real scenes (`kitchen`,
-  `llff_fern`, `llff_flower`, `room`, 6 views each). **Result: GeoDiff3D
-  fusion does not beat VGGT-only on cross-view consistency in any of the
-  four scenes.** It beats naive unweighted averaging in 2 of 4 scenes and
-  loses to it in the other 2 — an earlier 2-scene run had suggested fusion
-  consistently beat naive averaging, but that claim did not survive testing
-  on more scenes and is retracted in `experiments/RESULTS.md`. The one
-  result that held across all four scenes: fusion consistently beats using
-  Marigold alone. No ground truth exists for any of these scenes, so this is
-  a self-consistency comparison, not an accuracy one — see
-  `experiments/RESULTS.md` for the full breakdown and caveats.
+  `llff_fern`, `llff_flower`, `room`, 6 views each). An initial run found
+  fusion never beat VGGT-only on cross-view consistency, which led to
+  diagnosing and fixing a bug in the confidence weighting (it was giving
+  even high-confidence pixels a near-50/50 blend instead of being genuinely
+  confidence-selective — see `core/math.py::fuse_depths` and
+  `experiments/RESULTS.md`). **After the fix, re-run on the same four
+  scenes: fusion beats VGGT-only outright in 2 of 4 scenes** (`kitchen`,
+  `llff_fern`), and in the other 2 the gap shrank substantially (from 54%
+  and 138% worse, to 7.9% and 17.5% worse). Fusion also beats naive
+  averaging in 3 of 4 scenes and Marigold-only in all 4. This is a genuine,
+  partial improvement, not a claim that fusion always wins. No ground truth
+  exists for any of these scenes, so this is a self-consistency comparison,
+  not an accuracy one — see `experiments/RESULTS.md` for the full breakdown,
+  caveats, and revision history.
 
 ## In progress / not yet verified
 
