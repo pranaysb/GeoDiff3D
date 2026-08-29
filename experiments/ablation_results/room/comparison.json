@@ -10,7 +10,7 @@
       392,
       518
     ],
-    "runtime_sec": 2.7,
+    "runtime_sec": 2.286,
     "cuda_available": true,
     "gpu_name": "Tesla T4",
     "gpu_memory_allocated_gb": 4.709
@@ -20,65 +20,65 @@
     "device": "cuda",
     "num_views": 6,
     "num_inference_steps": 4,
-    "runtime_sec": 9.784,
+    "runtime_sec": 7.773,
     "per_view_runtime_sec": [
-      1.299,
-      1.304,
-      1.321,
-      1.344,
-      1.352,
-      1.363
+      1.058,
+      1.009,
+      1.01,
+      1.013,
+      1.021,
+      1.021
     ],
     "gpu_memory_allocated_gb": 2.429
   },
-  "shared_setup_sec": 55.681,
+  "shared_setup_sec": 52.791,
   "alignment": [
     {
       "view": 0,
-      "scale": 0.6826609984060926,
-      "shift": 0.8688020660692856,
-      "valid_pixel_count": 191858,
-      "residual": 0.08385223320302561
+      "scale": 0.6707132171264759,
+      "shift": 0.9302349459624395,
+      "valid_pixel_count": 192988,
+      "residual": 0.1109584320864375
     },
     {
       "view": 1,
-      "scale": 0.678496689646719,
-      "shift": 0.4384292654078911,
-      "valid_pixel_count": 197404,
-      "residual": 0.02992392027618446
+      "scale": 0.676145520838101,
+      "shift": 0.4393579189259071,
+      "valid_pixel_count": 196217,
+      "residual": 0.028242885796098748
     },
     {
       "view": 2,
-      "scale": 0.18417973486026212,
-      "shift": 0.34977334587681086,
-      "valid_pixel_count": 196262,
-      "residual": 0.018545836102270702
+      "scale": 0.17866901269727764,
+      "shift": 0.3509516371329068,
+      "valid_pixel_count": 195305,
+      "residual": 0.019438058669722563
     },
     {
       "view": 3,
-      "scale": 0.5545123613045357,
-      "shift": 0.4473599742158935,
-      "valid_pixel_count": 197492,
-      "residual": 0.08863775907571467
+      "scale": 0.49092882453214465,
+      "shift": 0.4424578580127205,
+      "valid_pixel_count": 194932,
+      "residual": 0.11248443057226039
     },
     {
       "view": 4,
-      "scale": 1.46297883924306,
-      "shift": 0.5705425342674312,
-      "valid_pixel_count": 194959,
-      "residual": 0.09416062187804693
+      "scale": 1.477168625531501,
+      "shift": 0.5790479284871581,
+      "valid_pixel_count": 194255,
+      "residual": 0.09949734507513745
     },
     {
       "view": 5,
-      "scale": 0.5326771406369714,
-      "shift": 0.723473916997964,
-      "valid_pixel_count": 196660,
-      "residual": 0.03686321439717432
+      "scale": 0.5156269611747887,
+      "shift": 0.7306448547614945,
+      "valid_pixel_count": 195651,
+      "residual": 0.03660883612653814
     }
   ],
   "methods": {
     "vggt_only": {
-      "runtime_sec": 3.2327,
+      "runtime_sec": 4.4933,
       "point_cloud": {
         "num_points": 1212240,
         "bbox_min": [
@@ -104,83 +104,83 @@
       "cross_view_consistency_mean_abs_rel_error": 0.02849875029642135
     },
     "marigold_only": {
-      "runtime_sec": 4.558,
+      "runtime_sec": 3.2809,
       "point_cloud": {
-        "num_points": 1213258,
+        "num_points": 1214272,
         "bbox_min": [
-          -1.200700283050537,
-          -0.6293632984161377,
-          -2.361527919769287
+          -1.198184847831726,
+          -0.6794358491897583,
+          -2.3732919692993164
         ],
         "bbox_max": [
-          1.3740566968917847,
-          1.4265671968460083,
-          1.4994945526123047
+          1.376208782196045,
+          1.5100858211517334,
+          1.5918649435043335
         ],
         "bbox_size": [
-          2.5747570991516113,
-          2.0559306144714355,
-          3.861022472381592
+          2.5743937492370605,
+          2.1895217895507812,
+          3.9651570320129395
         ],
         "depth_range": [
-          -2.361527919769287,
-          1.4994945526123047
+          -2.3732919692993164,
+          1.5918649435043335
         ]
       },
-      "cross_view_consistency_mean_abs_rel_error": 0.11754582542926073,
+      "cross_view_consistency_mean_abs_rel_error": 0.14920689351856709,
       "note": "VGGT's camera parameters are reused since Marigold alone produces no multi-view camera geometry to reconstruct in a shared frame."
     },
     "naive_average": {
-      "runtime_sec": 3.3444,
+      "runtime_sec": 3.4229,
       "point_cloud": {
         "num_points": 1212240,
         "bbox_min": [
-          -1.19204843044281,
-          -0.5981879830360413,
-          -2.588146209716797
+          -1.191167950630188,
+          -0.6060133576393127,
+          -2.602524995803833
         ],
         "bbox_max": [
-          1.4146596193313599,
-          1.4110453128814697,
-          1.4762821197509766
+          1.4144914150238037,
+          1.4187244176864624,
+          1.4479116201400757
         ],
         "bbox_size": [
-          2.60670804977417,
-          2.009233236312866,
-          4.064428329467773
+          2.6056594848632812,
+          2.02473783493042,
+          4.050436496734619
         ],
         "depth_range": [
-          -2.588146209716797,
-          1.4762821197509766
+          -2.602524995803833,
+          1.4479116201400757
         ]
       },
-      "cross_view_consistency_mean_abs_rel_error": 0.06878797570243478
+      "cross_view_consistency_mean_abs_rel_error": 0.0840859767049551
     },
     "geodiff3d_fusion": {
-      "runtime_sec": 3.3799,
+      "runtime_sec": 3.8934,
       "point_cloud": {
         "num_points": 1212240,
         "bbox_min": [
           -1.1847068071365356,
           -0.6158400177955627,
-          -2.642040729522705
+          -2.828855514526367
         ],
         "bbox_max": [
-          1.4527473449707031,
-          1.4390263557434082,
-          1.52289879322052
+          1.4560046195983887,
+          1.5250070095062256,
+          1.5328909158706665
         ],
         "bbox_size": [
-          2.637454032897949,
-          2.054866313934326,
-          4.1649394035339355
+          2.6407113075256348,
+          2.1408469676971436,
+          4.361746311187744
         ],
         "depth_range": [
-          -2.642040729522705,
-          1.52289879322052
+          -2.828855514526367,
+          1.5328909158706665
         ]
       },
-      "cross_view_consistency_mean_abs_rel_error": 0.03352288284804672
+      "cross_view_consistency_mean_abs_rel_error": 0.02888370875734836
     }
   },
   "ground_truth": "none available for this scene -- self-consistency diagnostics only"

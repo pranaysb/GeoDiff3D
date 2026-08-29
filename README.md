@@ -39,12 +39,14 @@ implemented:
   even high-confidence pixels a near-50/50 blend instead of being genuinely
   confidence-selective), then offline-tuning the fix's two parameters
   (`experiments/tune_fusion.py`) against cached real GPU outputs from all
-  four scenes — see `core/math.py::fuse_depths` and `experiments/RESULTS.md`.
-  **After the fix and tuning: fusion beats VGGT-only outright in 3 of 4
-  scenes** (`kitchen`, `llff_fern`, `llff_flower`), losing only narrowly
-  (1.8%) in the 4th (`room`). Fusion also beats naive averaging in 3 of 4
-  scenes and Marigold-only in all 4. This is a genuine, largely-but-not-fully
-  positive result, not a claim that fusion always wins. No ground truth
+  four scenes, then **confirming the tuned result on a fresh, independent
+  GPU run** (new, unseeded Marigold samples) — see `core/math.py::fuse_depths`
+  and `experiments/RESULTS.md`. **Confirmed result: fusion beats VGGT-only
+  outright in 3 of 4 scenes** (`kitchen`, `llff_fern`, `llff_flower`), losing
+  only narrowly (1.4%) in the 4th (`room`). Fusion also beats naive averaging
+  in 3 of 4 scenes and Marigold-only in all 4. This is a genuine,
+  largely-but-not-fully positive result, not a claim that fusion always
+  wins. No ground truth
   exists for any of these scenes, so this is a self-consistency comparison,
   not an accuracy one — see `experiments/RESULTS.md` for the full breakdown,
   caveats, and revision history.
