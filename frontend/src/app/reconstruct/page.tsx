@@ -148,7 +148,8 @@ export default function ReconstructPage() {
                   <div className="bg-emerald-500 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
                 </div>
                 <p className="text-xs text-zinc-500 text-center mt-2">
-                  Processing on CPU. This proof-of-concept pipeline might take a few moments.
+                  Running the reconstruction pipeline -- this can take anywhere
+                  from seconds to a few minutes depending on the backend.
                 </p>
               </div>
             ) : (
