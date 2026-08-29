@@ -84,20 +84,29 @@ plausible reading of the pattern, not something these four scenes prove.
 
 ### Qualitative (depth_comparison_4methods.png)
 
+All three observations below were checked by directly cropping and comparing
+the relevant panels in each scene's PNG, not inferred from the numbers.
+
+- **`kitchen`**: VGGT-only's own background (the wall/table area behind the
+  toy excavator) is not perfectly clean — it has visible mottled noise.
+  Fusion's background shows *slightly more resolved structure* in places
+  (faint furniture-like shapes in the upper-right that VGGT-only smooths
+  into flat noise), not less detail. That fits fusion being the
+  best-scoring method here: the capped correction appears to add useful
+  signal in a genuinely low-confidence region rather than just diluting
+  toward Marigold.
+- **`llff_flower`**: cropping the flower region from `naive_average` vs.
+  `geodiff3d_fusion` side by side, fusion is visibly smoother and less
+  mottled on the petals and surrounding leaf edges than naive averaging —
+  consistent with the capped, threshold-gated blend limiting how much
+  Marigold's uncapped high-frequency texture (visible in the `marigold_only`
+  row) can bleed through.
 - **`room`**: VGGT-only, naive averaging, and fusion depth maps are visually
-  close across all 6 views, yet fusion's cross-view error is still 17.5%
-  higher than VGGT-only's — a reminder that visual similarity in these plots
-  does not imply comparable cross-view consistency, since each subplot is
-  auto-scaled to its own min/max.
-- **`llff_flower`**: Marigold resolves clearly richer high-frequency texture
-  on the flower petals and leaves than VGGT. Fusion's depth maps still show
-  some of that texture, but visibly less than before the fix (consistent
-  with the capped, threshold-gated blend now used) — and the quantitative
-  gap to VGGT-only shrank from 54% to 7.9% as a result.
-- **`kitchen`**: this is now the clearest qualitative/quantitative match —
-  fusion is the best-scoring method and its depth maps look closest to
-  VGGT-only's clean, low-texture field, with only subtle correction in a
-  few local regions.
+  near-identical across all 6 views — yet fusion's cross-view error is still
+  17.5% higher than VGGT-only's. Visual similarity in these plots does not
+  imply comparable cross-view consistency; each subplot is auto-scaled to
+  its own min/max, so this figure can't show the small, geometrically
+  consequential differences the metric is actually sensitive to.
 
 ## Interpretation
 
