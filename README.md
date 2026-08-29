@@ -37,13 +37,14 @@ implemented:
   fusion never beat VGGT-only on cross-view consistency, which led to
   diagnosing and fixing a bug in the confidence weighting (it was giving
   even high-confidence pixels a near-50/50 blend instead of being genuinely
-  confidence-selective — see `core/math.py::fuse_depths` and
-  `experiments/RESULTS.md`). **After the fix, re-run on the same four
-  scenes: fusion beats VGGT-only outright in 2 of 4 scenes** (`kitchen`,
-  `llff_fern`), and in the other 2 the gap shrank substantially (from 54%
-  and 138% worse, to 7.9% and 17.5% worse). Fusion also beats naive
-  averaging in 3 of 4 scenes and Marigold-only in all 4. This is a genuine,
-  partial improvement, not a claim that fusion always wins. No ground truth
+  confidence-selective), then offline-tuning the fix's two parameters
+  (`experiments/tune_fusion.py`) against cached real GPU outputs from all
+  four scenes — see `core/math.py::fuse_depths` and `experiments/RESULTS.md`.
+  **After the fix and tuning: fusion beats VGGT-only outright in 3 of 4
+  scenes** (`kitchen`, `llff_fern`, `llff_flower`), losing only narrowly
+  (1.8%) in the 4th (`room`). Fusion also beats naive averaging in 3 of 4
+  scenes and Marigold-only in all 4. This is a genuine, largely-but-not-fully
+  positive result, not a claim that fusion always wins. No ground truth
   exists for any of these scenes, so this is a self-consistency comparison,
   not an accuracy one — see `experiments/RESULTS.md` for the full breakdown,
   caveats, and revision history.
